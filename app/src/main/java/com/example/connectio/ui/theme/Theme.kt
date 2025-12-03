@@ -1,6 +1,6 @@
 package com.example.connectio.ui.theme
 
-import android.app.Activity
+import android.hardware.lights.Light
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -9,18 +9,26 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = Tangerine, //Kolor nieparzystych kwadratów z planszy
+    secondary = OffRed, //Kolor parzystych kwadratów z planszy
+    primaryContainer = Indigo, //Kolor pozostałych pojemników UI
+    secondaryContainer = Tangerine, // Kolor kwadratów na górnym i dolnym pasku
+    background = BlueGray, // kolor tła
+    onBackground = Color.White,
 )
 
+
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = Cornsilk, //Kolor nieparzystych Kwadratów z planszy
+    secondary = PapayaWhip, //Kolor parzystych Kwadratów z planszy
+    primaryContainer = DarkGreen, //Kolor pozostałych pojemników UI
+    secondaryContainer = PapayaWhip,
+    background = LightGreen,
+    onBackground = Color.White,
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -37,7 +45,7 @@ private val LightColorScheme = lightColorScheme(
 fun ConnectioTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

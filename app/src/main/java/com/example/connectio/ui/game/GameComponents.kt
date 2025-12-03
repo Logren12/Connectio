@@ -3,7 +3,7 @@ package com.example.connectio.ui.game
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,14 +15,20 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun Tile(
     modifier: Modifier = Modifier,
-    id: Int,
-    color:Color,
-    width: Dp,
-    height: Dp
-){
-    Box(Modifier
-        .size(width = width, height = height)
-        .background(color)){
-        Text("$id", Modifier.align(Alignment.Center))
+    id: Int = -1,
+    color: Color = MaterialTheme.colorScheme.primary,
+    width: Dp = 48.dp,
+    height: Dp = 48.dp,
+    text: String = ""
+) {
+    Box(
+        modifier
+            .size(width = width, height = height)
+            .background(color)
+    ) {
+        Text(
+            text = text,
+            Modifier.align(Alignment.Center)
+        )
     }
 }
