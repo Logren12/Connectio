@@ -1,6 +1,7 @@
 package com.example.connectio.ui.game
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
@@ -15,19 +16,22 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun Tile(
     modifier: Modifier = Modifier,
-    id: Int = -1,
+    item: GameItem,
     color: Color = MaterialTheme.colorScheme.primary,
     width: Dp = 48.dp,
     height: Dp = 48.dp,
-    text: String = ""
+    text: String? = null,
+    onClick: () -> Unit = {}
 ) {
+    val item = item
     Box(
         modifier
             .size(width = width, height = height)
             .background(color)
+            .clickable { onClick() }
     ) {
         Text(
-            text = text,
+            text = text ?: item.display,
             Modifier.align(Alignment.Center)
         )
     }
