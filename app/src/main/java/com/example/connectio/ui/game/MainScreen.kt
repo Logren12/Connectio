@@ -256,7 +256,7 @@ fun Board(
             Tile(
                 Modifier.aspectRatio(1f),
                 item = item,
-                color = MaterialTheme.colorScheme.primaryContainer,
+                color = MaterialTheme.colorScheme.primary,
                 onClick = { onTileClick(item) }
             )
         }

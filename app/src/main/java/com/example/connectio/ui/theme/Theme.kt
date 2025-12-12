@@ -1,6 +1,5 @@
 package com.example.connectio.ui.theme
 
-import android.hardware.lights.Light
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -13,8 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Tangerine, //Kolor nieparzystych kwadratów z planszy
-    secondary = OffRed, //Kolor parzystych kwadratów z planszy
+    primary = Indigo, // Kolor kwadratów na planszy
+    secondary = OffRed,
     primaryContainer = Indigo, //Kolor pozostałych pojemników UI
     secondaryContainer = Tangerine, // Kolor kwadratów na górnym i dolnym pasku
     background = BlueGray, // kolor tła
