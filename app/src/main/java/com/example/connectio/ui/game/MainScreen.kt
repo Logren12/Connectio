@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -34,7 +33,6 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.connectio.ui.theme.BlueGray
 import com.example.connectio.ui.theme.ConnectioTheme
 
 data class GameState(
@@ -45,8 +43,12 @@ data class GameState(
     val expForNextLevel: Int = 100,
     val cols: Int = 7,
     val rows: Int = 9,
-    val board: List<MergeableItem> = List(cols * rows) {
-        MergeableItem(MergeableType.EMPTY)
+    val board: List<GameItem> = List(cols * rows) { index ->
+        if (index == 31) {
+            Generator(MergeableType.NUMBER, 2)
+        } else {
+            MergeableItem(MergeableType.EMPTY)
+        }
     }
 )
 
@@ -70,21 +72,41 @@ fun GameScreen() {
         }
     }
 
-    fun generateItem() {
-        // 1. search for free space (pick the tile with itemType = EMPTY with minimum distance from
-        // the generator.
-        // 2. redraw Tile with new itemType
+    fun onTileClick(gameItem: GameItem) {
+        if (gameItem !is Generator) {
+            return
+        }
+        if (gameState.energy < 1) {
+            return
+        }
+        for (i in 0 until gameState.board.size) {
+            if (gameState.board[i].type == MergeableType.EMPTY) {
+                val newItem = gameItem.generateItem()
+                val newBoard = gameState.board.toMutableList()
+                newBoard[i] = newItem
+                gameState = gameState.copy(
+                    board = newBoard, energy = gameState.energy - 1
+                )
+                return
+            }
+        }
     }
 
     MainScreen(
         onEnergyClick = { onEnergyClick() },
         onLevelClick = { onLevelClick() },
+        onTileClick = { onTileClick(it) },
         gameState = gameState
     )
 }
 
 @Composable
-fun MainScreen(onEnergyClick: () -> Unit, onLevelClick: () -> Unit, gameState: GameState) {
+fun MainScreen(
+    onEnergyClick: () -> Unit,
+    onLevelClick: () -> Unit,
+    onTileClick: (GameItem) -> Unit,
+    gameState: GameState
+) {
     Scaffold(
         topBar = {
             ResourceBar(
@@ -127,7 +149,8 @@ fun MainScreen(onEnergyClick: () -> Unit, onLevelClick: () -> Unit, gameState: G
                     .padding(12.dp)
                     .fillMaxWidth(),
                 cols = gameState.cols,
-                gameState = gameState
+                gameState = gameState,
+                onTileClick = onTileClick
             )
         }
     }
@@ -213,7 +236,12 @@ fun RequestsBar(modifier: Modifier = Modifier, count: Int) {
 }
 
 @Composable
-fun Board(modifier: Modifier = Modifier, cols: Int, gameState: GameState) {
+fun Board(
+    modifier: Modifier = Modifier,
+    cols: Int,
+    gameState: GameState,
+    onTileClick: (GameItem) -> Unit
+) {
     LazyVerticalGrid(
         modifier = modifier.fillMaxWidth(),
         columns = GridCells.Fixed(cols),
@@ -225,7 +253,12 @@ fun Board(modifier: Modifier = Modifier, cols: Int, gameState: GameState) {
             items = gameState.board,
             key = { item -> item.id }
         ) { item ->
-            Tile(Modifier.aspectRatio(1f), item = item, color = MaterialTheme.colorScheme.primaryContainer)
+            Tile(
+                Modifier.aspectRatio(1f),
+                item = item,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                onClick = { onTileClick(item) }
+            )
         }
     }
 }
@@ -252,17 +285,17 @@ fun BottomBar(
                 text = "\uD83D\uDCE6"
             )
             Tile(
-                item = MergeableItem(MergeableType.LETTER, 2),
+                item = MergeableItem(MergeableType.NUMBER, 2),
                 color = MaterialTheme.colorScheme.secondaryContainer,
                 text = "\uD83D\uDCE6"
             )
             Tile(
-                item = MergeableItem(MergeableType.LETTER, 3),
+                item = MergeableItem(MergeableType.EMPTY, 3),
                 color = MaterialTheme.colorScheme.secondaryContainer,
                 text = "\uD83D\uDCE6"
             )
             Tile(
-                item = MergeableItem(MergeableType.LETTER, 4),
+                item = MergeableItem(MergeableType.LETTER, 0),
                 color = MaterialTheme.colorScheme.secondaryContainer,
                 text = "\uD83D\uDCE6"
             )
