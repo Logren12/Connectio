@@ -11,11 +11,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.squareup.kotlinpoet.NUMBER
 
 @Composable
 fun Tile(
     modifier: Modifier = Modifier,
-    id: Int = -1,
+    item: MergeableItem,
     color: Color = MaterialTheme.colorScheme.primary,
     width: Dp = 48.dp,
     height: Dp = 48.dp,
@@ -27,7 +28,7 @@ fun Tile(
             .background(color)
     ) {
         Text(
-            text = text,
+            text = item.display,
             Modifier.align(Alignment.Center)
         )
     }
