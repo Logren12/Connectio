@@ -20,24 +20,13 @@ private val DarkColorScheme = darkColorScheme(
     onBackground = Color.White,
 )
 
-
 private val LightColorScheme = lightColorScheme(
-    primary = Cornsilk, //Kolor nieparzystych Kwadratów z planszy
-    secondary = PapayaWhip, //Kolor parzystych Kwadratów z planszy
+    primary = PapayaWhip, // Kolor kwadratów na planszy
+    secondary = LightGreen,
     primaryContainer = DarkGreen, //Kolor pozostałych pojemników UI
     secondaryContainer = PapayaWhip,
     background = LightGreen,
     onBackground = Color.White,
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
 )
 
 @Composable
