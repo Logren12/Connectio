@@ -35,7 +35,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.connectio.ui.theme.ConnectioTheme
 import kotlin.random.Random.Default.nextInt
-import kotlin.text.get
 
 data class GameState(
     val energy: Int = 100,
@@ -73,7 +72,7 @@ fun GameScreen() {
     }
 
     fun outOfEnergy() {
-        TODO()
+        TODO("Need to adress that")
     }
 
     fun onEnergyClick() {
@@ -124,17 +123,17 @@ fun GameScreen() {
         }
         val notEqualType = (gameItem.type != gameState.board[endIndex].type)
         val notEqualLevel = (gameItem.level != gameState.board[endIndex].level)
-        val equalClass = (gameItem is Generator)
+        val notEqualClass = (gameItem::class != gameState.board[endIndex]::class)
         // Jeśli spadło na pole to porównaj to, co się przesunęło z tym, na co spadło
-        if (notEqualType || notEqualLevel) {
+        if (notEqualType || notEqualLevel || notEqualClass) {
             // zamień pola miejscami
             val newBoard = gameState.board.toMutableList()
             newBoard[startingIndex] = gameState.board[endIndex]
             newBoard[endIndex] = gameItem
             gameState = gameState.copy(board = newBoard)
         } else {
-            // Jeżeli spadło na taki sam poziom i taki sam typ, to stwórz puste w pierwotnym miejscu a
-            // w miejscu "upadku" stwórz przedmiot z takim samym typem i poziomem + 1
+            //Jeżeli spadło na taki sam poziom i typ, to stwórz puste w pierwotnym miejscu,
+            // a w miejscu "upadku" stwórz przedmiot z takim samym typem i poziomem + 1
             val emptyItem = MergeableItem(MergeableType.EMPTY, 0)
             val newItem = MergeableItem(gameItem.type, gameItem.level + 1)
             val newBoard = gameState.board.toMutableList()
@@ -148,7 +147,13 @@ fun GameScreen() {
         onEnergyClick = { onEnergyClick() },
         onLevelClick = { onLevelClick() },
         onTileClick = { onTileClick(it) },
-        onDragStopped = {gameItem, colMove, rowMove -> onDragStopped(gameItem = gameItem, colMove, rowMove) },
+        onDragStopped = { gameItem, colMove, rowMove ->
+            onDragStopped(
+                gameItem = gameItem,
+                colMove,
+                rowMove
+            )
+        },
         gameState = gameState
     )
 }
@@ -275,7 +280,7 @@ fun RequestsBar(modifier: Modifier = Modifier, gameState: GameState) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        for (i in 0..<gameState.topBar.size)  {
+        for (i in 0..<gameState.topBar.size) {
             Column(
                 modifier = Modifier.padding(12.dp),
                 verticalArrangement = Arrangement.Center
@@ -285,7 +290,10 @@ fun RequestsBar(modifier: Modifier = Modifier, gameState: GameState) {
                     item = gameState.topBar[i],
                     color = MaterialTheme.colorScheme.secondaryContainer
                 )
-                Text(text = "${gameState.topBar[i].level} \uD83E\uDE99", modifier = Modifier.align(CenterHorizontally))
+                Text(
+                    text = "${gameState.topBar[i].level} \uD83E\uDE99",
+                    modifier = Modifier.align(CenterHorizontally)
+                )
             }
         }
     }

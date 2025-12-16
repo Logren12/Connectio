@@ -2,14 +2,10 @@ package com.example.connectio.ui.game
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.draggable2D
 import androidx.compose.foundation.gestures.rememberDraggable2DState
-import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,19 +19,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.dropShadow
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import kotlin.math.roundToInt
 
 @Composable
@@ -47,7 +37,7 @@ fun Tile(
     height: Dp = 48.dp,
     text: String = "",
     onClick: () -> Unit = {},
-    onDragStopped: (Int, Int) -> Unit = { rowMove,colMove -> }
+    onDragStopped: (Int, Int) -> Unit = { rowMove, colMove -> }
 ) {
     val xOffsetPosition = remember { mutableStateOf(0f) }
     val yOffsetPosition = remember { mutableStateOf(0f) }
@@ -83,18 +73,12 @@ fun Tile(
                                 yOffsetPosition.value = newValueY
                             },
                         onDragStopped = {
-                            /**
-                             * a = (xOffsetPosition.value / szerokość komórki).roundToInt()
-                             * b = (yOffsetPosition.value / szerokość komórki).roundToInt()
-                             * endIndex = startingIndex + a + (gameState.rows * b)
-                             */
                             if (tileSize.width > 0 && tileSize.height > 0) {
                                 val rowMove = (xOffsetPosition.value / tileSize.width).roundToInt()
                                 val colMove = (yOffsetPosition.value / tileSize.height).roundToInt()
-
-                            xOffsetPosition.value = 0f
-                            yOffsetPosition.value = 0f
-                            onDragStopped(colMove, rowMove)
+                                xOffsetPosition.value = 0f
+                                yOffsetPosition.value = 0f
+                                onDragStopped(colMove, rowMove)
                             }
                         }
                     )
@@ -111,6 +95,6 @@ fun Tile(
 
 @Composable
 @Preview
-fun TilePreview(){
-    Tile(item = MergeableItem(MergeableType.NUMBER,3))
+fun TilePreview() {
+    Tile(item = MergeableItem(MergeableType.NUMBER, 3))
 }
