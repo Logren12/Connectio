@@ -34,6 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.connectio.ui.theme.ConnectioTheme
+import kotlin.random.Random.Default.nextInt
+import kotlin.text.get
 
 data class GameState(
     val energy: Int = 100,
@@ -41,15 +43,24 @@ data class GameState(
     val experience: Int = 0,
     val level: Int = 1,
     val expForNextLevel: Int = 100,
-    val cols: Int = 7,
-    val rows: Int = 9,
+    val cols: Int = 3,
+    val rows: Int = 3,
+    val topBar: List<MergeableItem> = List(5) {
+        MergeableItem(MergeableType.NUMBER, nextInt(1, 5))
+    },
     val board: List<GameItem> = List(cols * rows) { index ->
-        if (index == 31) {
+        if (index == (cols * rows) / 2) {
             Generator(MergeableType.NUMBER, 2)
         } else {
             MergeableItem(MergeableType.EMPTY)
         }
-    }
+    },
+    val bottomBar: List<GameItem> = listOf(
+        MergeableItem(MergeableType.EMPTY, 0),
+        MergeableItem(MergeableType.EMPTY, 0),
+        MergeableItem(MergeableType.EMPTY, 0),
+        MergeableItem(MergeableType.EMPTY, 0)
+    )
 )
 
 @Composable
@@ -59,6 +70,10 @@ fun GameScreen() {
         gameState = gameState.copy(experience = gameState.experience - gameState.expForNextLevel)
         gameState = gameState.copy(level = gameState.level + 1)
         gameState = gameState.copy(expForNextLevel = gameState.expForNextLevel * 2)
+    }
+
+    fun outOfEnergy() {
+        TODO()
     }
 
     fun onEnergyClick() {
@@ -72,11 +87,13 @@ fun GameScreen() {
         }
     }
 
+
     fun onTileClick(gameItem: GameItem) {
         if (gameItem !is Generator) {
             return
         }
         if (gameState.energy < 1) {
+            outOfEnergy()
             return
         }
         val emptyFields = gameState.board.filter { it.type == MergeableType.EMPTY }
@@ -92,10 +109,46 @@ fun GameScreen() {
         gameState = gameState.copy(board = newBoard, energy = gameState.energy - 1)
     }
 
+
+    fun onDragStopped(gameItem: GameItem, colMove: Int, rowMove: Int) {
+        // id początkowej lokalizacji:
+        val startingIndex = gameState.board.indexOf(gameItem)
+        // id końcowej lokalizacji:
+        val endIndex = startingIndex + rowMove + (gameState.cols * colMove)
+        // Jeśli spadło poza planszę lub na to samo pole na którym wcześniej było to wycentruj
+        if (endIndex < 0 || endIndex >= gameState.board.size) {
+            return
+        }
+        if (startingIndex == endIndex) {
+            return
+        }
+        val notEqualType = (gameItem.type != gameState.board[endIndex].type)
+        val notEqualLevel = (gameItem.level != gameState.board[endIndex].level)
+        val equalClass = (gameItem is Generator)
+        // Jeśli spadło na pole to porównaj to, co się przesunęło z tym, na co spadło
+        if (notEqualType || notEqualLevel) {
+            // zamień pola miejscami
+            val newBoard = gameState.board.toMutableList()
+            newBoard[startingIndex] = gameState.board[endIndex]
+            newBoard[endIndex] = gameItem
+            gameState = gameState.copy(board = newBoard)
+        } else {
+            // Jeżeli spadło na taki sam poziom i taki sam typ, to stwórz puste w pierwotnym miejscu a
+            // w miejscu "upadku" stwórz przedmiot z takim samym typem i poziomem + 1
+            val emptyItem = MergeableItem(MergeableType.EMPTY, 0)
+            val newItem = MergeableItem(gameItem.type, gameItem.level + 1)
+            val newBoard = gameState.board.toMutableList()
+            newBoard[endIndex] = newItem
+            newBoard[startingIndex] = emptyItem
+            gameState = gameState.copy(board = newBoard)
+            onLevelClick()
+        }
+    }
     MainScreen(
         onEnergyClick = { onEnergyClick() },
         onLevelClick = { onLevelClick() },
         onTileClick = { onTileClick(it) },
+        onDragStopped = {gameItem, colMove, rowMove -> onDragStopped(gameItem = gameItem, colMove, rowMove) },
         gameState = gameState
     )
 }
@@ -105,6 +158,7 @@ fun MainScreen(
     onEnergyClick: () -> Unit,
     onLevelClick: () -> Unit,
     onTileClick: (GameItem) -> Unit,
+    onDragStopped: (GameItem, Int, Int) -> Unit,
     gameState: GameState
 ) {
     Scaffold(
@@ -128,7 +182,8 @@ fun MainScreen(
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .padding(12.dp)
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                gameState = gameState
             )
         }
     ) { innerPadding ->
@@ -142,7 +197,7 @@ fun MainScreen(
                     .padding(12.dp)
                     .fillMaxWidth()
                     .background(color = MaterialTheme.colorScheme.primaryContainer),
-                5
+                gameState = gameState
             )
             Board(
                 modifier = Modifier
@@ -150,7 +205,8 @@ fun MainScreen(
                     .fillMaxWidth(),
                 cols = gameState.cols,
                 gameState = gameState,
-                onTileClick = onTileClick
+                onTileClick = onTileClick,
+                onDragStopped = onDragStopped
             )
         }
     }
@@ -213,23 +269,23 @@ fun ResourceBar(
 }
 
 @Composable
-fun RequestsBar(modifier: Modifier = Modifier, count: Int) {
+fun RequestsBar(modifier: Modifier = Modifier, gameState: GameState) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        for (i in 1..count) {
+        for (i in 0..<gameState.topBar.size)  {
             Column(
                 modifier = Modifier.padding(12.dp),
                 verticalArrangement = Arrangement.Center
             ) {
                 Tile(
                     modifier = Modifier,
-                    item = MergeableItem(MergeableType.NUMBER, 0),
+                    item = gameState.topBar[i],
                     color = MaterialTheme.colorScheme.secondaryContainer
                 )
-                Text(text = "$i \uD83E\uDE99", modifier = Modifier.align(CenterHorizontally))
+                Text(text = "${gameState.topBar[i].level} \uD83E\uDE99", modifier = Modifier.align(CenterHorizontally))
             }
         }
     }
@@ -240,7 +296,8 @@ fun Board(
     modifier: Modifier = Modifier,
     cols: Int,
     gameState: GameState,
-    onTileClick: (GameItem) -> Unit
+    onTileClick: (GameItem) -> Unit,
+    onDragStopped: (GameItem, Int, Int) -> Unit
 ) {
     LazyVerticalGrid(
         modifier = modifier.fillMaxWidth(),
@@ -257,7 +314,12 @@ fun Board(
                 Modifier.aspectRatio(1f),
                 item = item,
                 color = MaterialTheme.colorScheme.primary,
-                onClick = { onTileClick(item) }
+                onClick = { onTileClick(item) },
+                /* TODO: Zrobić tak, żeby plansza nie musiała się przerysowywać za każdym razem,
+                    bo podobno taka konstrukcja tak robi. */
+                onDragStopped = { colMove, rowMove ->
+                    onDragStopped(item, colMove, rowMove)
+                }
             )
         }
     }
@@ -265,7 +327,7 @@ fun Board(
 
 @Composable
 fun BottomBar(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier, gameState: GameState
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -279,9 +341,9 @@ fun BottomBar(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            repeat(4) {
+            for (i in 0..<gameState.bottomBar.size) {
                 Tile(
-                    item = MergeableItem(MergeableType.EMPTY, 0),
+                    item = gameState.bottomBar[i],
                     color = MaterialTheme.colorScheme.secondaryContainer,
                     text = "\uD83D\uDCE6"
                 )
