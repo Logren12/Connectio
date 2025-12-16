@@ -79,17 +79,17 @@ fun GameScreen() {
         if (gameState.energy < 1) {
             return
         }
-        for (i in 0 until gameState.board.size) {
-            if (gameState.board[i].type == MergeableType.EMPTY) {
-                val newItem = gameItem.generateItem()
-                val newBoard = gameState.board.toMutableList()
-                newBoard[i] = newItem
-                gameState = gameState.copy(
-                    board = newBoard, energy = gameState.energy - 1
-                )
-                return
-            }
+        val emptyFields = gameState.board.filter { it.type == MergeableType.EMPTY }
+        if (emptyFields.isEmpty()) {
+            return
         }
+        val targetField = emptyFields.random()
+        val targetFieldIndex = gameState.board.indexOf(targetField)
+
+        val newItem = gameItem.generateItem()
+        val newBoard = gameState.board.toMutableList()
+        newBoard[targetFieldIndex] = newItem
+        gameState = gameState.copy(board = newBoard, energy = gameState.energy - 1)
     }
 
     MainScreen(
