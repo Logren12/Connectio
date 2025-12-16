@@ -279,26 +279,13 @@ fun BottomBar(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Tile(
-                item = MergeableItem(MergeableType.LETTER, 1),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                text = "\uD83D\uDCE6"
-            )
-            Tile(
-                item = MergeableItem(MergeableType.NUMBER, 2),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                text = "\uD83D\uDCE6"
-            )
-            Tile(
-                item = MergeableItem(MergeableType.EMPTY, 3),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                text = "\uD83D\uDCE6"
-            )
-            Tile(
-                item = MergeableItem(MergeableType.LETTER, 0),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                text = "\uD83D\uDCE6"
-            )
+            repeat(4) {
+                Tile(
+                    item = MergeableItem(MergeableType.EMPTY, 0),
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    text = "\uD83D\uDCE6"
+                )
+            }
         }
         Box(
             modifier = Modifier
