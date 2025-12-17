@@ -38,54 +38,80 @@ import kotlin.random.Random.Default.nextInt
 
 data class GameState(
     val energy: Int = 100,
-    val coins: Int = 124,
+    val coins: Int = 50,
     val experience: Int = 0,
     val level: Int = 1,
     val expForNextLevel: Int = 100,
-    val cols: Int = 3,
-    val rows: Int = 3,
+    val cols: Int = 7,
+    val rows: Int = 9,
     val topBar: List<MergeableItem> = List(5) {
         MergeableItem(MergeableType.NUMBER, nextInt(1, 5))
     },
     val board: List<GameItem> = List(cols * rows) { index ->
         if (index == (cols * rows) / 2) {
-            Generator(MergeableType.NUMBER, 2)
+            Generator(MergeableType.NUMBER, 1)
         } else {
             MergeableItem(MergeableType.EMPTY)
         }
     },
-    val bottomBar: List<GameItem> = listOf(
-        MergeableItem(MergeableType.EMPTY, 0),
-        MergeableItem(MergeableType.EMPTY, 0),
-        MergeableItem(MergeableType.EMPTY, 0),
+    val bottomBar: List<GameItem> = List(4) {
         MergeableItem(MergeableType.EMPTY, 0)
-    )
+    },
+    val itemStash: List<GameItem> = List(0) {
+        MergeableItem(MergeableType.NUMBER, 0)
+    }
 )
 
 @Composable
 fun GameScreen() {
     var gameState by remember { mutableStateOf(GameState()) }
+
+    fun addItemToBoard(newItem: GameItem, index: Int) {
+        val newItem = newItem
+        val newBoard = gameState.board.toMutableList()
+        if (index < 0 || index >= gameState.board.size) {
+            error("Wrong index: $index, must be > 0 and < board size (${gameState.board.size})")
+        }
+        newBoard[index] = newItem
+        gameState = gameState.copy(board = newBoard)
+    }
     fun levelUp() {
         gameState = gameState.copy(experience = gameState.experience - gameState.expForNextLevel)
         gameState = gameState.copy(level = gameState.level + 1)
-        gameState = gameState.copy(expForNextLevel = gameState.expForNextLevel * 2)
-    }
+        gameState = gameState.copy(expForNextLevel = gameState.expForNextLevel + 100)
 
-    fun outOfEnergy() {
-        TODO("Need to adress that")
-    }
+        val newStash = gameState.itemStash.toMutableList()
+        val rewardType = if (gameState.level < 10) MergeableType.NUMBER else MergeableType.LETTER
+        val reward = if (rewardType == MergeableType.LETTER) Generator(rewardType, gameState.level - 9)
+        else Generator(rewardType, gameState.level - 1)
+        newStash.add(reward)
+        gameState = gameState.copy(itemStash = newStash)
 
-    fun onEnergyClick() {
-        gameState = gameState.copy(energy = gameState.energy + 10)
+        val targetIndex = gameState.board.indexOfFirst { it.type == MergeableType.EMPTY }
+        if (targetIndex != -1) {
+            addItemToBoard(reward, targetIndex)
+        } else {
+            // TODO: Stash needs to be emptied later on somehow
+        }
     }
-
-    fun onLevelClick() {
-        gameState = gameState.copy(experience = gameState.experience + 10)
+    fun addExp(amount: Int) {
+        gameState = gameState.copy(experience = gameState.experience + amount)
         if (gameState.experience >= gameState.expForNextLevel) {
             levelUp()
         }
     }
-
+    fun changeEnergy(amount: Int) {
+        gameState = gameState.copy(energy = gameState.energy + amount)
+    }
+    fun onEnergyClick() {
+        changeEnergy(10)
+    }
+    fun outOfEnergy() {
+        //TODO("Need to adress that")
+    }
+    fun onLevelClick() {
+        addExp(10)
+    }
 
     fun onTileClick(gameItem: GameItem) {
         if (gameItem !is Generator) {
@@ -103,9 +129,8 @@ fun GameScreen() {
         val targetFieldIndex = gameState.board.indexOf(targetField)
 
         val newItem = gameItem.generateItem()
-        val newBoard = gameState.board.toMutableList()
-        newBoard[targetFieldIndex] = newItem
-        gameState = gameState.copy(board = newBoard, energy = gameState.energy - 1)
+        addItemToBoard(newItem, targetFieldIndex)
+        changeEnergy(-1)
     }
 
 
@@ -135,12 +160,16 @@ fun GameScreen() {
             //Jeżeli spadło na taki sam poziom i typ, to stwórz puste w pierwotnym miejscu,
             // a w miejscu "upadku" stwórz przedmiot z takim samym typem i poziomem + 1
             val emptyItem = MergeableItem(MergeableType.EMPTY, 0)
-            val newItem = MergeableItem(gameItem.type, gameItem.level + 1)
+            val newItem = if (gameItem is Generator) {
+                Generator(gameItem.type, gameItem.level + 1)
+            } else {
+                MergeableItem(gameItem.type, gameItem.level + 1)
+            }
             val newBoard = gameState.board.toMutableList()
             newBoard[endIndex] = newItem
             newBoard[startingIndex] = emptyItem
             gameState = gameState.copy(board = newBoard)
-            onLevelClick()
+            addExp(gameItem.level * 10)
         }
     }
     MainScreen(

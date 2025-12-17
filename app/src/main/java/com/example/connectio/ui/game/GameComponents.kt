@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import kotlin.math.roundToInt
 
 @Composable
@@ -42,6 +44,7 @@ fun Tile(
     val xOffsetPosition = remember { mutableStateOf(0f) }
     val yOffsetPosition = remember { mutableStateOf(0f) }
     var tileSize by remember { mutableStateOf(IntSize.Zero) }
+    var scale by remember { mutableStateOf(1f) }
     Box(
         modifier
             .size(width = width, height = height)
@@ -55,6 +58,7 @@ fun Tile(
             Box(
                 Modifier
                     .fillMaxSize(0.8f)
+                    .scale(scale)
                     .offset {
                         IntOffset(
                             xOffsetPosition.value.roundToInt(),
@@ -62,7 +66,7 @@ fun Tile(
                         )
                     }
                     .clip(RoundedCornerShape(30))
-                    .background(MaterialTheme.colorScheme.secondary)
+                    .background(item.color)
                     .draggable2D(
                         state =
                             rememberDraggable2DState { delta ->
@@ -72,7 +76,9 @@ fun Tile(
                                 xOffsetPosition.value = newValueX
                                 yOffsetPosition.value = newValueY
                             },
+                        onDragStarted = { scale = 1.25f },
                         onDragStopped = {
+                            scale = 1f
                             if (tileSize.width > 0 && tileSize.height > 0) {
                                 val rowMove = (xOffsetPosition.value / tileSize.width).roundToInt()
                                 val colMove = (yOffsetPosition.value / tileSize.height).roundToInt()
@@ -86,7 +92,7 @@ fun Tile(
                 contentAlignment = Alignment.Center
             )
             {
-                Text(item.display)
+                Text(item.display, color = item.textColor)
             }
         }
         Text(text = text)
