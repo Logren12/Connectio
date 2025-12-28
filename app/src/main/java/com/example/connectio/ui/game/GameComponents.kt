@@ -1,6 +1,9 @@
 package com.example.connectio.ui.game
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.draggable2D
 import androidx.compose.foundation.gestures.rememberDraggable2DState
@@ -45,13 +48,12 @@ fun Tile(
     val yOffsetPosition = remember { mutableStateOf(0f) }
     var tileSize by remember { mutableStateOf(IntSize.Zero) }
     var scale by remember { mutableStateOf(1f) }
+
     Box(
         modifier
             .size(width = width, height = height)
-            .background(color)
-            .onSizeChanged { size ->
-                tileSize = size
-            },
+            .border(Dp.Hairline, color = MaterialTheme.colorScheme.background)
+            .background(color),
         contentAlignment = Alignment.Center
     ) {
         if (item.type != MergeableType.EMPTY) {
@@ -59,6 +61,9 @@ fun Tile(
                 Modifier
                     .fillMaxSize(0.8f)
                     .scale(scale)
+                    .onSizeChanged { size ->
+                        tileSize = size
+                    }
                     .offset {
                         IntOffset(
                             xOffsetPosition.value.roundToInt(),

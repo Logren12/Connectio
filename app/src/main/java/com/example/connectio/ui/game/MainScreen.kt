@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.example.connectio.ui.theme.ConnectioTheme
 import kotlin.random.Random.Default.nextInt
 
@@ -42,8 +43,8 @@ data class GameState(
     val experience: Int = 0,
     val level: Int = 1,
     val expForNextLevel: Int = 100,
-    val cols: Int = 7,
-    val rows: Int = 9,
+    val cols: Int = 3,
+    val rows: Int = 3,
     val topBar: List<MergeableItem> = List(5) {
         MergeableItem(MergeableType.NUMBER, nextInt(1, 5))
     },
@@ -91,7 +92,7 @@ fun GameScreen() {
         if (targetIndex != -1) {
             addItemToBoard(reward, targetIndex)
         } else {
-            // TODO: Stash needs to be emptied later on somehow
+            // TODO: Stash needs to be emptied later on somehow (on merge?)
         }
     }
     fun addExp(amount: Int) {
@@ -107,7 +108,7 @@ fun GameScreen() {
         changeEnergy(10)
     }
     fun outOfEnergy() {
-        //TODO("Need to adress that")
+        //TODO("Need to implement")
     }
     fun onLevelClick() {
         addExp(10)
@@ -129,15 +130,16 @@ fun GameScreen() {
         val targetFieldIndex = gameState.board.indexOf(targetField)
 
         val newItem = gameItem.generateItem()
+        /* TODO: dodać animację pojawiania się kafelka (fadeIn) */
         addItemToBoard(newItem, targetFieldIndex)
         changeEnergy(-1)
     }
 
 
     fun onDragStopped(gameItem: GameItem, colMove: Int, rowMove: Int) {
-        // id początkowej lokalizacji:
+        // indeks początkowej lokalizacji:
         val startingIndex = gameState.board.indexOf(gameItem)
-        // id końcowej lokalizacji:
+        // indeks końcowej lokalizacji:
         val endIndex = startingIndex + rowMove + (gameState.cols * colMove)
         // Jeśli spadło poza planszę lub na to samo pole na którym wcześniej było to wycentruj
         if (endIndex < 0 || endIndex >= gameState.board.size) {
@@ -172,6 +174,7 @@ fun GameScreen() {
             addExp(gameItem.level * 10)
         }
     }
+
     MainScreen(
         onEnergyClick = { onEnergyClick() },
         onLevelClick = { onLevelClick() },
@@ -316,8 +319,7 @@ fun RequestsBar(modifier: Modifier = Modifier, gameState: GameState) {
             ) {
                 Tile(
                     modifier = Modifier,
-                    item = gameState.topBar[i],
-                    color = MaterialTheme.colorScheme.secondaryContainer
+                    item = gameState.topBar[i]
                 )
                 Text(
                     text = "${gameState.topBar[i].level} \uD83E\uDE99",
@@ -340,8 +342,8 @@ fun Board(
         modifier = modifier.fillMaxWidth(),
         columns = GridCells.Fixed(cols),
         userScrollEnabled = false,
-        verticalArrangement = Arrangement.spacedBy(1.dp),
-        horizontalArrangement = Arrangement.spacedBy(1.dp)
+        verticalArrangement = Arrangement.spacedBy(0.dp),
+        horizontalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         items(
             items = gameState.board,
@@ -354,6 +356,8 @@ fun Board(
                 onClick = { onTileClick(item) },
                 /* TODO: Zrobić tak, żeby plansza nie musiała się przerysowywać za każdym razem,
                     bo podobno taka konstrukcja tak robi. */
+                /* TODO: Dodać animację po upuszczeniu (gdy puści palec, przedmiot się rusza w
+                *   kierunku najbliższego pola*/
                 onDragStopped = { colMove, rowMove ->
                     onDragStopped(item, colMove, rowMove)
                 }
@@ -381,7 +385,6 @@ fun BottomBar(
             for (i in 0..<gameState.bottomBar.size) {
                 Tile(
                     item = gameState.bottomBar[i],
-                    color = MaterialTheme.colorScheme.secondaryContainer,
                     text = "\uD83D\uDCE6"
                 )
             }
@@ -393,7 +396,6 @@ fun BottomBar(
             contentAlignment = Alignment.Center
         ) {
             Tile(
-                color = MaterialTheme.colorScheme.secondaryContainer,
                 item = MergeableItem(MergeableType.EMPTY, 0),
                 width = 72.dp,
                 height = 48.dp,
